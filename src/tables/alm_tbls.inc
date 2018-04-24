@@ -1,0 +1,573 @@
+/*******************************************************************************
+Description    : 本文件中定义全部表格。
+History        :
+<version> <date>     <Author> <Description>
+*******************************************************************************/
+#ifndef __ALM_TBLS_INC__
+#define __ALM_TBLS_INC__
+
+#include "alm_tbls.h"
+#include "alm_table_store_itf.h"
+
+#ifdef __cplusplus
+#if __cplusplus
+extern "C" {
+#endif /* if __cplusplus */
+#endif /* ifdef __cplusplus */
+
+
+#if defined(ALM_PACK_4)
+#pragma pack (4)
+#elif defined(ALM_PACK_8)
+#pragma pack (8)
+#endif
+
+/************************************************************************
+* 工具宏
+************************************************************************/
+
+/* 依据表格简名、列简名得到列索引 */
+#define ALM_TBL_COL_IDX(TBL, COL) ALM_TBL_COL_IDX_##TBL##_##COL
+
+/* 定义表格列的工具宏，处理索引、主键、唯一性等 */
+#define ALM_TBL_COL_DIM_ALL(TBL, COL, type, dflt, size, bNeedIdx) \
+    {(size), {ALM_TBL_COL_IDX(TBL, COL),#COL, type, dflt, bNeedIdx}}
+
+/* 定义表格列的工具宏，默认不支持索引、非主键、非唯一性 */
+#define ALM_TBL_COL_DIM(TBL, COL, type, dflt, size) \
+    ALM_TBL_COL_DIM_ALL(TBL, COL, type, dflt, size, ALM_FALSE)
+
+/* 表格起始列 */
+#define ALM_TBL_COL_DIM_START(TBL) \
+    ALM_TBL_COL_DIM(TBL, START, ALM_TBL_DATA_TYPE_UINT8, ALM_NULL, 0)
+
+/* 表格终止列 */
+#define ALM_TBL_COL_DIM_END(TBL) \
+    ALM_TBL_COL_DIM(TBL, END, ALM_TBL_DATA_TYPE_UINT8, ALM_NULL, 0)
+
+/* 依据表格简名得到列数， 暂时放置此处 */
+#define ALM_TBL_COL_NUM(TBL) \
+    (ALM_TBL_COL_IDX(TBL, END) - ALM_TBL_COL_IDX(TBL, START) - 1)
+
+/* 依据表格简名得到表格定义 */
+/*lint -emacro(656, ALM_TBL_DIM)*/
+#define ALM_TBL_DIM(TBL) {\
+        ALM_TBL_IDX_##TBL,\
+        ALM_TBL_NAME(TBL), \
+        s_astTblCols, \
+        (ALM_TBL_COL_IDX(TBL, START) + 1), \
+        ALM_TBL_COL_NUM(TBL)}
+
+/* KEY拆成15段存储，每段511字节(不包含'\0'字符) */
+#define ALM_CONST_KEY_SEG_LEN 511
+
+/************************************************************************
+* 定义表格列
+************************************************************************/
+
+static ALM_TBL_COL_DIM_EX_STRU s_astTblCols[] =
+{
+
+    /************************************************************************
+    * PRD_INFO
+    ************************************************************************/
+    ALM_TBL_COL_DIM_START(PRD_INFO),
+
+    /* 基础信息 */
+    ALM_TBL_COL_DIM_ALL(PRD_INFO, ID,
+    ALM_TBL_DATA_TYPE_UINT32, ALM_NULL, sizeof(ALM_INT32), ALM_TRUE),
+
+    ALM_TBL_COL_DIM(PRD_INFO, NAME,
+    ALM_TBL_DATA_TYPE_CHAR64, ALM_NULL, ALM_CONST_PRD_NAME_LEN_MAX + 1),
+
+    ALM_TBL_COL_DIM(PRD_INFO, VER,
+    ALM_TBL_DATA_TYPE_CHAR32, ALM_NULL, ALM_CONST_PRD_VER_MAX + 1),
+
+    /* 扩展信息*/
+    ALM_TBL_COL_DIM(PRD_INFO, SAFETIMEABLE,
+    ALM_TBL_DATA_TYPE_UINT8, "0", sizeof(ALM_BOOL)),
+
+    ALM_TBL_COL_DIM(PRD_INFO, USE_MINVAL_PARTOVER,
+    ALM_TBL_DATA_TYPE_UINT8, "0", sizeof(ALM_BOOL)),
+
+    ALM_TBL_COL_DIM(PRD_INFO, FIX_TIME_SUPPORT,
+    ALM_TBL_DATA_TYPE_UINT8, "0", sizeof(ALM_BOOL)),
+
+    ALM_TBL_COL_DIM(PRD_INFO, ESNVERMIS_ONCE,
+    ALM_TBL_DATA_TYPE_UINT8, "0", sizeof(ALM_BOOL)),
+
+    ALM_TBL_COL_DIM(PRD_INFO, FORCE_CMP_SUPPORT,
+    ALM_TBL_DATA_TYPE_UINT8, "0", sizeof(ALM_BOOL)),
+    ALM_TBL_COL_DIM(PRD_INFO, DISABLE,
+    ALM_TBL_DATA_TYPE_UINT8, "0", sizeof(ALM_BOOL)),
+    ALM_TBL_COL_DIM(PRD_INFO, R5C01DLFTLKUSE,
+    ALM_TBL_DATA_TYPE_UINT8, "0", sizeof(ALM_BOOL)),
+    /* 状态段 */
+    ALM_TBL_COL_DIM(PRD_INFO, STATE,
+    ALM_TBL_DATA_TYPE_UINT32, ALM_NULL, ALM_ENUM_SIZE),
+
+    ALM_TBL_COL_DIM(PRD_INFO, ENTER,
+    ALM_TBL_DATA_TYPE_CHAR32, ALM_NULL, ALM_CONST_DATE_LEN + 1),
+
+    ALM_TBL_COL_DIM(PRD_INFO, LEFT_MINS,
+    ALM_TBL_DATA_TYPE_UINT32, ALM_NULL, sizeof(ALM_UINT32)),
+
+    ALM_TBL_COL_DIM(PRD_INFO, PERM,
+    ALM_TBL_DATA_TYPE_UINT8, ALM_NULL, sizeof(ALM_BOOL)),
+
+    ALM_TBL_COL_DIM(PRD_INFO, STATE_LSN,
+    ALM_TBL_DATA_TYPE_CHAR18, ALM_NULL, ALM_CONST_LIC_LSN + 1),
+
+    ALM_TBL_COL_DIM(PRD_INFO, ANY_DEMO_RUN_MINS,
+    ALM_TBL_DATA_TYPE_UINT32, ALM_NULL, sizeof(ALM_UINT32)),
+
+    ALM_TBL_COL_DIM(PRD_INFO, ANY_DEMO_TOTAL_MINS,
+    ALM_TBL_DATA_TYPE_UINT32, ALM_NULL, sizeof(ALM_UINT32)),
+
+    /* 密钥段 */
+    ALM_TBL_COL_DIM(PRD_INFO, KEY00,
+    ALM_TBL_DATA_TYPE_CHAR512, ALM_NULL, ALM_CONST_KEY_SEG_LEN + 1),
+
+    ALM_TBL_COL_DIM(PRD_INFO, KEY01,
+    ALM_TBL_DATA_TYPE_CHAR512, ALM_NULL, ALM_CONST_KEY_SEG_LEN + 1),
+
+    ALM_TBL_COL_DIM(PRD_INFO, KEY02,
+    ALM_TBL_DATA_TYPE_CHAR512, ALM_NULL, ALM_CONST_KEY_SEG_LEN + 1),
+
+    ALM_TBL_COL_DIM(PRD_INFO, KEY03,
+    ALM_TBL_DATA_TYPE_CHAR512, ALM_NULL, ALM_CONST_KEY_SEG_LEN + 1),
+
+    ALM_TBL_COL_DIM(PRD_INFO, KEY04,
+    ALM_TBL_DATA_TYPE_CHAR512, ALM_NULL, ALM_CONST_KEY_SEG_LEN + 1),
+
+    ALM_TBL_COL_DIM(PRD_INFO, KEY05,
+    ALM_TBL_DATA_TYPE_CHAR512, ALM_NULL, ALM_CONST_KEY_SEG_LEN + 1),
+
+    ALM_TBL_COL_DIM(PRD_INFO, KEY06,
+    ALM_TBL_DATA_TYPE_CHAR512, ALM_NULL, ALM_CONST_KEY_SEG_LEN + 1),
+
+    ALM_TBL_COL_DIM(PRD_INFO, KEY07,
+    ALM_TBL_DATA_TYPE_CHAR512, ALM_NULL, ALM_CONST_KEY_SEG_LEN + 1),
+
+    ALM_TBL_COL_DIM(PRD_INFO, KEY08,
+    ALM_TBL_DATA_TYPE_CHAR512, ALM_NULL, ALM_CONST_KEY_SEG_LEN + 1),
+
+    ALM_TBL_COL_DIM(PRD_INFO, KEY09,
+    ALM_TBL_DATA_TYPE_CHAR512, ALM_NULL, ALM_CONST_KEY_SEG_LEN + 1),
+
+    ALM_TBL_COL_DIM(PRD_INFO, KEY10,
+    ALM_TBL_DATA_TYPE_CHAR512, ALM_NULL, ALM_CONST_KEY_SEG_LEN + 1),
+
+    ALM_TBL_COL_DIM(PRD_INFO, KEY11,
+    ALM_TBL_DATA_TYPE_CHAR512, ALM_NULL, ALM_CONST_KEY_SEG_LEN + 1),
+
+    ALM_TBL_COL_DIM(PRD_INFO, KEY12,
+    ALM_TBL_DATA_TYPE_CHAR512, ALM_NULL, ALM_CONST_KEY_SEG_LEN + 1),
+
+    ALM_TBL_COL_DIM(PRD_INFO, KEY13,
+    ALM_TBL_DATA_TYPE_CHAR512, ALM_NULL, ALM_CONST_KEY_SEG_LEN + 1),
+
+    ALM_TBL_COL_DIM(PRD_INFO, KEY14,
+    ALM_TBL_DATA_TYPE_CHAR512, ALM_NULL, ALM_CONST_KEY_SEG_LEN + 1),
+
+    ALM_TBL_COL_DIM_END(PRD_INFO),
+    /************************************************************************
+    * PRD_BBOMS
+    ************************************************************************/
+    ALM_TBL_COL_DIM_START(PRD_BBOMS),
+
+    /* 基础信息 */
+    ALM_TBL_COL_DIM_ALL(PRD_BBOMS, PRD_ID,
+    ALM_TBL_DATA_TYPE_UINT32, ALM_NULL, sizeof(ALM_INT32), ALM_TRUE),
+
+    ALM_TBL_COL_DIM_ALL(PRD_BBOMS, BBOM_ID,
+    ALM_TBL_DATA_TYPE_UINT32, ALM_NULL, sizeof(ALM_INT32), ALM_TRUE),
+
+    ALM_TBL_COL_DIM_ALL(PRD_BBOMS, BBOM_NAME,
+    ALM_TBL_DATA_TYPE_CHAR64, ALM_NULL, ALM_CONST_LIC_BBOM_NAME_MAX + 1, ALM_TRUE),
+
+    ALM_TBL_COL_DIM(PRD_BBOMS, TYPE,
+    ALM_TBL_DATA_TYPE_UINT32, ALM_NULL, ALM_ENUM_SIZE),
+
+    ALM_TBL_COL_DIM(PRD_BBOMS, DFLT_VAL,
+    ALM_TBL_DATA_TYPE_UINT64, ALM_NULL, sizeof(ALM_UINT64)),
+
+    ALM_TBL_COL_DIM(PRD_BBOMS, MIN_VAL,
+    ALM_TBL_DATA_TYPE_UINT64, ALM_NULL, sizeof(ALM_UINT64)),
+
+    ALM_TBL_COL_DIM(PRD_BBOMS, MAX_VAL,
+    ALM_TBL_DATA_TYPE_UINT64, ALM_NULL, sizeof(ALM_UINT64)),
+
+    /* 状态段 */
+    ALM_TBL_COL_DIM(PRD_BBOMS, LSN,
+    ALM_TBL_DATA_TYPE_CHAR18, "", ALM_CONST_LIC_LSN + 1),
+
+    ALM_TBL_COL_DIM(PRD_BBOMS, STATE,
+    ALM_TBL_DATA_TYPE_UINT32, "0", ALM_ENUM_SIZE),
+
+    ALM_TBL_COL_DIM(PRD_BBOMS, ENTER,
+    ALM_TBL_DATA_TYPE_CHAR32, "", ALM_CONST_DATE_LEN + 1),
+
+    ALM_TBL_COL_DIM(PRD_BBOMS, LEFT_MINS,
+    ALM_TBL_DATA_TYPE_UINT32, "0", sizeof(ALM_UINT32)),
+
+    ALM_TBL_COL_DIM(PRD_BBOMS, IS_PERM,
+    ALM_TBL_DATA_TYPE_UINT8, "1", sizeof(ALM_BOOL)),
+
+    ALM_TBL_COL_DIM(PRD_BBOMS, TOTALVALUE,
+    ALM_TBL_DATA_TYPE_UINT64, "0", sizeof(ALM_UINT64)),
+
+    ALM_TBL_COL_DIM(PRD_BBOMS, PERVALUE,
+    ALM_TBL_DATA_TYPE_UINT64, "0", sizeof(ALM_UINT64)),
+
+    ALM_TBL_COL_DIM(PRD_BBOMS, TMPVALUE,
+    ALM_TBL_DATA_TYPE_UINT64, "0", sizeof(ALM_UINT64)),
+
+    ALM_TBL_COL_DIM(PRD_BBOMS, NORMALEM,
+    ALM_TBL_DATA_TYPE_UINT8, "0", sizeof(ALM_BOOL)),
+
+    ALM_TBL_COL_DIM(PRD_BBOMS, DFTEM,
+    ALM_TBL_DATA_TYPE_UINT8, "0", sizeof(ALM_BOOL)),
+
+    ALM_TBL_COL_DIM_END(PRD_BBOMS),
+    /************************************************************************
+    * LIC
+    ************************************************************************/
+    ALM_TBL_COL_DIM_START(LIC),
+
+    ALM_TBL_COL_DIM_ALL(LIC, LSN,
+    ALM_TBL_DATA_TYPE_CHAR32, ALM_NULL, ALM_CONST_LIC_LSN + 1, ALM_TRUE),
+
+    ALM_TBL_COL_DIM(LIC, OBJ_ADDR,
+    ALM_TBL_DATA_TYPE_UINT64, ALM_NULL, sizeof(ALM_UINT64)),
+
+    ALM_TBL_COL_DIM_END(LIC),
+
+    /************************************************************************
+    * LIC_STATE
+    ************************************************************************/
+    ALM_TBL_COL_DIM_START(LIC_STATE),
+
+    ALM_TBL_COL_DIM_ALL(LIC_STATE, PRD_ID,
+    ALM_TBL_DATA_TYPE_UINT32, ALM_NULL, sizeof(ALM_UINT32), ALM_TRUE),
+
+    ALM_TBL_COL_DIM_ALL(LIC_STATE, LSN,
+    ALM_TBL_DATA_TYPE_CHAR32, ALM_NULL, ALM_CONST_LIC_LSN + 1, ALM_TRUE),
+
+    /* 使用记录 */
+    ALM_TBL_COL_DIM(LIC_STATE, RECOVER_USING,
+    ALM_TBL_DATA_TYPE_UINT8, "0", sizeof(ALM_BOOL)),
+
+    ALM_TBL_COL_DIM_ALL(LIC_STATE, IS_USING,
+    ALM_TBL_DATA_TYPE_UINT8, "0", sizeof(ALM_BOOL), ALM_TRUE),
+
+    ALM_TBL_COL_DIM(LIC_STATE, FREE_USE_COUNT,
+    ALM_TBL_DATA_TYPE_UINT32, "0", sizeof(ALM_UINT32)),
+
+    ALM_TBL_COL_DIM(LIC_STATE, USE_COUNT,
+    ALM_TBL_DATA_TYPE_UINT32, "0", sizeof(ALM_UINT32)),
+
+    ALM_TBL_COL_DIM(LIC_STATE, FLASH_TIME_STAMP,
+    ALM_TBL_DATA_TYPE_UINT32, "0", sizeof(ALM_UINT32)),
+
+    /* 状态部分 */
+    ALM_TBL_COL_DIM(LIC_STATE, STATE,
+    ALM_TBL_DATA_TYPE_UINT32, "0", ALM_ENUM_SIZE),
+
+    ALM_TBL_COL_DIM(LIC_STATE, RSN,
+    ALM_TBL_DATA_TYPE_UINT64, "0", sizeof(ALM_UINT64)),
+
+    ALM_TBL_COL_DIM(LIC_STATE, TOTAL_MINS,
+    ALM_TBL_DATA_TYPE_UINT32, "0", sizeof(ALM_UINT32)),
+
+    ALM_TBL_COL_DIM(LIC_STATE, LEFT_MINS,
+    ALM_TBL_DATA_TYPE_UINT32, "0", sizeof(ALM_UINT32)),
+
+    ALM_TBL_COL_DIM(LIC_STATE, VALID_PASS_MINS,
+    ALM_TBL_DATA_TYPE_UINT32, "0", sizeof(ALM_UINT32)),
+
+    ALM_TBL_COL_DIM(LIC_STATE, GRACE_PASS_MINS,
+    ALM_TBL_DATA_TYPE_UINT32, "0", sizeof(ALM_UINT32)),
+
+    ALM_TBL_COL_DIM(LIC_STATE, IS_PERM,
+    ALM_TBL_DATA_TYPE_UINT8, "1", sizeof(ALM_BOOL)),
+
+    ALM_TBL_COL_DIM(LIC_STATE, ENTER_TIME,
+    ALM_TBL_DATA_TYPE_CHAR32, "", ALM_CONST_DATE_LEN + 1),
+
+    ALM_TBL_COL_DIM(LIC_STATE, RVK_TIME,
+    ALM_TBL_DATA_TYPE_CHAR32, "", ALM_CONST_DATE_LEN + 1),
+
+    ALM_TBL_COL_DIM(LIC_STATE, ENTER_TRIAL_TIME,
+    ALM_TBL_DATA_TYPE_CHAR32, "", ALM_CONST_DATE_LEN + 1),
+
+    /* 校验项部分 */
+    ALM_TBL_COL_DIM(LIC_STATE, ESN_MIS,
+    ALM_TBL_DATA_TYPE_UINT8, "0", sizeof(ALM_BOOL)),
+
+    ALM_TBL_COL_DIM(LIC_STATE, PRD_NAME_MIS,
+    ALM_TBL_DATA_TYPE_UINT8, "0", sizeof(ALM_BOOL)),
+
+    ALM_TBL_COL_DIM(LIC_STATE, PRD_VER_MIS,
+    ALM_TBL_DATA_TYPE_UINT8, "0", sizeof(ALM_BOOL)),
+
+    ALM_TBL_COL_DIM(LIC_STATE, HAVE_RVKED,
+    ALM_TBL_DATA_TYPE_UINT8, "0", sizeof(ALM_BOOL)),
+
+    ALM_TBL_COL_DIM(LIC_STATE, VALID_OVER,
+    ALM_TBL_DATA_TYPE_UINT8, "0", sizeof(ALM_BOOL)),
+
+    ALM_TBL_COL_DIM(LIC_STATE, GRACE_OVER,
+    ALM_TBL_DATA_TYPE_UINT8, "0", sizeof(ALM_BOOL)),
+
+    /* 上一次刷新时保留的校验项及激活记录 */
+    ALM_TBL_COL_DIM(LIC_STATE, LAST_IS_USING,
+    ALM_TBL_DATA_TYPE_UINT8, "0", sizeof(ALM_BOOL)),
+
+    ALM_TBL_COL_DIM(LIC_STATE, LAST_ESN_MIS,
+    ALM_TBL_DATA_TYPE_UINT8, "0", sizeof(ALM_BOOL)),
+
+    ALM_TBL_COL_DIM(LIC_STATE, LAST_PRD_NAME_MIS,
+    ALM_TBL_DATA_TYPE_UINT8, "0", sizeof(ALM_BOOL)),
+
+    ALM_TBL_COL_DIM(LIC_STATE, LAST_PRD_VER_MIS,
+    ALM_TBL_DATA_TYPE_UINT8, "0", sizeof(ALM_BOOL)),
+
+    ALM_TBL_COL_DIM(LIC_STATE, LAST_HAVE_RVKED,
+    ALM_TBL_DATA_TYPE_UINT8, "0", sizeof(ALM_BOOL)),
+
+    ALM_TBL_COL_DIM(LIC_STATE, LAST_VALID_OVER,
+    ALM_TBL_DATA_TYPE_UINT8, "0", sizeof(ALM_BOOL)),
+
+    ALM_TBL_COL_DIM(LIC_STATE, LAST_GRACE_OVER,
+    ALM_TBL_DATA_TYPE_UINT8, "0", sizeof(ALM_BOOL)),
+
+    /* 用于状态校验或激活校验的文件内容 */
+    ALM_TBL_COL_DIM(LIC_STATE, LIC_TYPE,
+    ALM_TBL_DATA_TYPE_UINT32, ALM_NULL, ALM_ENUM_SIZE),
+
+    ALM_TBL_COL_DIM(LIC_STATE, LIC_DEADLINE,
+    ALM_TBL_DATA_TYPE_CHAR32, ALM_NULL, ALM_CONST_DATE_LEN + 1),
+
+    ALM_TBL_COL_DIM(LIC_STATE, LIC_REL_DAYS,
+    ALM_TBL_DATA_TYPE_UINT32, ALM_NULL, sizeof(ALM_UINT32)),
+
+    ALM_TBL_COL_DIM(LIC_STATE, LIC_GRACE_DAYS,
+    ALM_TBL_DATA_TYPE_UINT32, ALM_NULL, sizeof(ALM_UINT32)),
+
+    ALM_TBL_COL_DIM(LIC_STATE, LIC_ALLOW_COUNT,
+    ALM_TBL_DATA_TYPE_UINT32, ALM_NULL, sizeof(ALM_UINT32)),
+
+    ALM_TBL_COL_DIM_END(LIC_STATE),
+
+    /************************************************************************
+    * LIC_BBOM_STATE
+    ************************************************************************/
+    ALM_TBL_COL_DIM_START(LIC_BBOM_STATE),
+
+    ALM_TBL_COL_DIM_ALL(LIC_BBOM_STATE, PRD_ID,
+    ALM_TBL_DATA_TYPE_UINT32, ALM_NULL, sizeof(ALM_UINT32), ALM_TRUE),
+
+    ALM_TBL_COL_DIM_ALL(LIC_BBOM_STATE, LSN,
+    ALM_TBL_DATA_TYPE_CHAR18, ALM_NULL, ALM_CONST_LIC_LSN + 1, ALM_TRUE),
+
+    ALM_TBL_COL_DIM_ALL(LIC_BBOM_STATE, BBOM_ID,
+    ALM_TBL_DATA_TYPE_UINT32, ALM_NULL, sizeof(ALM_UINT32), ALM_TRUE),
+
+    ALM_TBL_COL_DIM(LIC_BBOM_STATE, SAME_NAME_ID,
+    ALM_TBL_DATA_TYPE_UINT32, ALM_NULL, sizeof(ALM_UINT32)),
+
+    ALM_TBL_COL_DIM(LIC_BBOM_STATE, STATE,
+    ALM_TBL_DATA_TYPE_UINT32, "0", ALM_ENUM_SIZE),
+
+    ALM_TBL_COL_DIM(LIC_BBOM_STATE, TOTAL_MINS,
+    ALM_TBL_DATA_TYPE_UINT32, "0", sizeof(ALM_UINT32)),
+
+    ALM_TBL_COL_DIM(LIC_BBOM_STATE, LEFT_MINS,
+    ALM_TBL_DATA_TYPE_UINT32, "0", sizeof(ALM_UINT32)),
+
+    ALM_TBL_COL_DIM(LIC_BBOM_STATE, IS_PERM,
+    ALM_TBL_DATA_TYPE_UINT8, "1", sizeof(ALM_BOOL)),
+
+    ALM_TBL_COL_DIM(LIC_BBOM_STATE, ENTER_TIME,
+    ALM_TBL_DATA_TYPE_CHAR32, "", ALM_CONST_DATE_LEN + 1),
+
+    ALM_TBL_COL_DIM(LIC_BBOM_STATE, VALUE,
+    ALM_TBL_DATA_TYPE_UINT64, "0", sizeof(ALM_UINT64)),
+
+    ALM_TBL_COL_DIM(LIC_BBOM_STATE, VALID_PASS_MINS,
+    ALM_TBL_DATA_TYPE_UINT32, "0", sizeof(ALM_UINT32)),
+
+    ALM_TBL_COL_DIM(LIC_BBOM_STATE, GRACE_PASS_MINS,
+    ALM_TBL_DATA_TYPE_UINT32, "0", sizeof(ALM_UINT32)),
+
+    ALM_TBL_COL_DIM(LIC_BBOM_STATE, RSN,
+    ALM_TBL_DATA_TYPE_UINT64, "0", sizeof(ALM_UINT64)),
+
+    ALM_TBL_COL_DIM_END(LIC_BBOM_STATE),
+
+    /************************************************************************
+    * STATE_RULE
+    ************************************************************************/
+    ALM_TBL_COL_DIM_START(STATE_RULE),
+
+    ALM_TBL_COL_DIM_ALL(STATE_RULE, PRD_ID,
+    ALM_TBL_DATA_TYPE_UINT32, ALM_NULL, sizeof(ALM_INT32), ALM_TRUE),
+
+    ALM_TBL_COL_DIM(STATE_RULE, ITEM,
+    ALM_TBL_DATA_TYPE_UINT32, ALM_NULL, ALM_ENUM_SIZE),
+
+    ALM_TBL_COL_DIM(STATE_RULE, IGNORE,
+    ALM_TBL_DATA_TYPE_UINT8, ALM_NULL, sizeof(ALM_BOOL)),
+
+    ALM_TBL_COL_DIM(STATE_RULE, IGNORE_UP_AND_LOWER,
+    ALM_TBL_DATA_TYPE_UINT8, ALM_NULL, sizeof(ALM_BOOL)),
+
+    ALM_TBL_COL_DIM(STATE_RULE, MIS_STATE,
+    ALM_TBL_DATA_TYPE_UINT32, ALM_NULL, ALM_ENUM_SIZE),
+
+    ALM_TBL_COL_DIM(STATE_RULE, MIS_RECOVER_STATE,
+    ALM_TBL_DATA_TYPE_UINT32, ALM_NULL, ALM_ENUM_SIZE),
+
+    ALM_TBL_COL_DIM_END(STATE_RULE),
+
+    /************************************************************************
+    * PS_COMM: 非单个产品的相关数据。
+    ************************************************************************/
+    ALM_TBL_COL_DIM_START(PS_COMM),
+
+    ALM_TBL_COL_DIM(PS_COMM, SAFETIME_BASETIME,
+    ALM_TBL_DATA_TYPE_CHAR32, "0", ALM_CONST_DATE_LEN + 1),
+
+    ALM_TBL_COL_DIM(PS_COMM, SAFETIME_RUNTIME,
+    ALM_TBL_DATA_TYPE_UINT32, "0", sizeof(ALM_UINT32)),
+
+    ALM_TBL_COL_DIM(PS_COMM, SAFETIME_CHANGETIME,
+    ALM_TBL_DATA_TYPE_UINT32, "0", sizeof(ALM_UINT32)),
+
+    ALM_TBL_COL_DIM_END(PS_COMM),
+
+    /************************************************************************
+    * PS_PRD
+    ************************************************************************/
+    ALM_TBL_COL_DIM_START(PS_PRD),
+
+    ALM_TBL_COL_DIM(PS_PRD, TIME_ID,
+    ALM_TBL_DATA_TYPE_UINT8, "0", sizeof(ALM_CHAR)),
+
+    ALM_TBL_COL_DIM(PS_PRD, ID,
+    ALM_TBL_DATA_TYPE_UINT32, "0", sizeof(ALM_UINT32)),
+
+    ALM_TBL_COL_DIM(PS_PRD, VER,
+    ALM_TBL_DATA_TYPE_CHAR32, "0", ALM_CONST_PRD_VER_MAX + 1),
+
+    ALM_TBL_COL_DIM(PS_PRD, ANY_DEMO_RUN_MINS,
+    ALM_TBL_DATA_TYPE_UINT32, "0", sizeof(ALM_UINT32)),
+
+    ALM_TBL_COL_DIM(PS_PRD, ANY_DEMO_TOTAL_MINS,
+    ALM_TBL_DATA_TYPE_UINT32, "0", sizeof(ALM_UINT32)),
+
+    ALM_TBL_COL_DIM(PS_PRD, FIXED_TIME_LSN,
+    ALM_TBL_DATA_TYPE_CHAR32, "0", ALM_CONST_LIC_LSN + 1),
+
+    ALM_TBL_COL_DIM(PS_PRD, HAVE_AVTIVED_ESNVERMIS,
+    ALM_TBL_DATA_TYPE_UINT8, "0", sizeof(ALM_CHAR)),
+
+    ALM_TBL_COL_DIM_END(PS_PRD),
+
+
+    /************************************************************************
+    * PS_LIC
+    ************************************************************************/
+    ALM_TBL_COL_DIM_START(PS_LIC),
+
+    ALM_TBL_COL_DIM(PS_LIC, TIME_ID,
+    ALM_TBL_DATA_TYPE_UINT8, "0", sizeof(ALM_CHAR)),
+
+    ALM_TBL_COL_DIM(PS_LIC, PRD_ID,
+    ALM_TBL_DATA_TYPE_UINT32, "0", sizeof(ALM_UINT32)),
+
+    ALM_TBL_COL_DIM(PS_LIC, TYPE,
+    ALM_TBL_DATA_TYPE_UINT8, "0", sizeof(ALM_UINT8)),
+
+    ALM_TBL_COL_DIM(PS_LIC, LSN,
+    ALM_TBL_DATA_TYPE_CHAR18, "0", ALM_CONST_LIC_LSN + 1),
+
+    /* 使用记录 */
+    ALM_TBL_COL_DIM(PS_LIC, BE_USING,
+    ALM_TBL_DATA_TYPE_UINT8, "0", sizeof(ALM_BOOL)),
+
+    /* 是否能够恢复 */
+    ALM_TBL_COL_DIM(PS_LIC, BE_RECOVER_USING,
+    ALM_TBL_DATA_TYPE_UINT8, "0", sizeof(ALM_BOOL)),
+
+    ALM_TBL_COL_DIM(PS_LIC, USED_COUNT,
+    ALM_TBL_DATA_TYPE_UINT8, "0", sizeof(ALM_UINT8)),
+
+    ALM_TBL_COL_DIM(PS_LIC, FREE_USED_COUNT,
+    ALM_TBL_DATA_TYPE_UINT8, "0", sizeof(ALM_UINT8)),
+
+    ALM_TBL_COL_DIM(PS_LIC, BE_RVKED,
+    ALM_TBL_DATA_TYPE_UINT8, "0", sizeof(ALM_BOOL)),
+
+    ALM_TBL_COL_DIM(PS_LIC, STATE,
+    ALM_TBL_DATA_TYPE_UINT8, "0", sizeof(ALM_UINT8)),
+
+    ALM_TBL_COL_DIM(PS_LIC, IS_PERM,
+    ALM_TBL_DATA_TYPE_UINT8, "1", sizeof(ALM_BOOL)),
+
+    ALM_TBL_COL_DIM(PS_LIC, ENTER_TIME,
+    ALM_TBL_DATA_TYPE_UINT32, "0", sizeof(ALM_INT32)),
+
+    ALM_TBL_COL_DIM(PS_LIC, VALID_PASS_MINS,
+    ALM_TBL_DATA_TYPE_UINT32, "0", sizeof(ALM_UINT32)),
+
+    ALM_TBL_COL_DIM(PS_LIC, GRACE_PASS_MINS,
+    ALM_TBL_DATA_TYPE_UINT32, "0", sizeof(ALM_UINT32)),
+
+    ALM_TBL_COL_DIM(PS_LIC, RVK_TIME,
+    ALM_TBL_DATA_TYPE_UINT32, "0", sizeof(ALM_UINT32)),
+
+    ALM_TBL_COL_DIM(PS_LIC, ENTER_TRIAL_TIME,
+    ALM_TBL_DATA_TYPE_UINT32, "0", sizeof(ALM_UINT32)),
+
+    ALM_TBL_COL_DIM_END(PS_LIC),
+};
+
+/************************************************************************
+* 定义表格
+************************************************************************/
+/* 屏蔽pclint告警656: 枚举类型的量进行加减运算，
+ *其结果类型被认为枚举类型的
+ */
+static ALM_TBL_DIM_STRU s_astTbls[] =
+{
+    ALM_TBL_DIM(PRD_BBOMS),
+    ALM_TBL_DIM(PRD_INFO),
+    ALM_TBL_DIM(LIC),
+    ALM_TBL_DIM(LIC_STATE),
+    ALM_TBL_DIM(LIC_BBOM_STATE),
+    ALM_TBL_DIM(STATE_RULE),
+    ALM_TBL_DIM(PS_COMM),
+    ALM_TBL_DIM(PS_PRD),
+    ALM_TBL_DIM(PS_LIC),
+};
+
+
+/* 排序表格及列定义*/
+static ALM_VOID ALMTblsSortDim();
+
+/* 校验表格及列定义 */
+static ALM_BOOL ALMTblsCheckDim();
+
+#if (defined(ALM_PACK_4) || defined(ALM_PACK_8))
+#pragma pack ()
+#endif
+
+#ifdef __cplusplus
+#if __cplusplus
+}
+#endif /* if __cplusplus */
+#endif /* ifdef __cplusplus */
+
+#endif /* __ALM_TBLS_INC__ */
