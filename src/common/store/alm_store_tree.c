@@ -1157,7 +1157,7 @@ static ALM_INT32 ALMTreeCheck(CONST ALM_STORE_TREE_STRU* pstTree)
 
     /* 得到所有结点 */
     stOpt.bFindByMark = ALM_TRUE;
-    stOpt.bOnlyFindOnce = ALM_FALSE, stOpt.bOnlyGetLast = ALM_FALSE;
+    stOpt.bOnlyFindOnce = ALM_FALSE, stOpt.bOnlyGetLast = ALM_FALSE, stOpt.bOnlyGetLeaf = ALM_FALSE;
     iRet = ALMStoreTreeFind((ALM_STORE_TREE_STRU*)pstTree, ALM_NULL, &stOpt,
                             &stNodes);
     ALM_CallRet_M(iRet, (ALM_NULL));
